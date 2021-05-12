@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomLevelView">
+        <attr name="lvl_rate" format="float" />
+        <attr name="lvl_overall" format="float" />
+        <attr name="lvl_rate_color" format="color" />
+        <attr name="lvl_num_color" format="color" />
+        <attr name="lvl_back_color" format="color" />
+    </declare-styleable>
+</resources>
