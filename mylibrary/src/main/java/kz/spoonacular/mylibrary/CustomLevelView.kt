@@ -5,6 +5,7 @@ import android.content.res.TypedArray
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
 import androidx.annotation.ColorInt
 import androidx.cardview.widget.CardView
@@ -14,20 +15,8 @@ class CustomLevelView : CardView {
     private var paintRate = Paint()
     private var paintBg = Paint()
     private var paintText = Paint()
-    var rate: Float = 50f
-        set(value) {
-            rateWidth = (width * value / overall).toInt()
-            text = "${value}/${overall}"
-            field = value
-            invalidate()
-        }
-    var overall: Float = 100f
-        set(value) {
-            rateWidth = (width * rate / value).toInt()
-            text = "${rate}/${value}"
-            field = value
-            invalidate()
-        }
+    private var rate: Float = 50f
+    private var overall: Float = 100f
     private var rateWidth = (width * rate / overall).toInt()
     private var text = "${rate}/${overall}"
     @ColorInt
@@ -38,13 +27,23 @@ class CustomLevelView : CardView {
     private var textColor = Color.BLACK
     private var attributeSet: AttributeSet? = null
     private var defStyleAttr: Int = 0
+    private var bounds = Rect()
+    private var textPositionX = 0f
+    private var textPositionY = 0f
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        radius = height / 2f
+        rateWidth = (width * rate / 100.0).toInt()
+        text = "${rate}/${overall}"
+        paintText.textSize = (height * 0.5).toFloat()
+        paintText.getTextBounds(text, 0, text.length, bounds)
+        textPositionX = width/2f - bounds.width()/2
+        textPositionY = height/2f + bounds.height()/2
     }
 
     constructor(
@@ -82,8 +81,6 @@ class CustomLevelView : CardView {
             rateColor = attrs.getColor(R.styleable.CustomLevelView_lvl_rate_color, rateColor)
             backColor = attrs.getColor(R.styleable.CustomLevelView_lvl_back_color, backColor)
             textColor = attrs.getColor(R.styleable.CustomLevelView_lvl_num_color, textColor)
-            rate = attrs.getFloat(R.styleable.CustomLevelView_lvl_rate, rate)
-            overall = attrs.getFloat(R.styleable.CustomLevelView_lvl_overall, overall)
         } finally {
             attrs.recycle()
         }
@@ -99,21 +96,27 @@ class CustomLevelView : CardView {
         paintText.apply {
             style = Paint.Style.FILL
             color = textColor
-            textSize = (height * 0.9).toFloat()
+            textSize = (height * 0.5).toFloat()
         }
-        rateWidth = (width * rate / overall).toInt()
-        text = "${rate}/${overall}"
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-//        rateWidth = (width * rate / 100.0).toInt()
-//        text = "${rate}/${overall}"
-//        paintText.textSize = (height * 0.5).toFloat()
         canvas?.let { can ->
             can.drawRect(0F, 0F, width.toFloat(), height.toFloat(), paintBg)
             can.drawRect(0F, 0F, rateWidth.toFloat(), height.toFloat(), paintRate)
-            can.drawText(text, (width/2.5).toFloat(), (height/2).toFloat(), paintText)
+            can.drawText(
+                text,
+                textPositionX,
+                textPositionY,
+                paintText
+            )
         }
+    }
+
+    fun setValues(rate: Float, overall: Float) {
+        this.rate = rate
+        this.overall = overall
+        requestLayout()
     }
 }
